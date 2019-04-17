@@ -25,11 +25,14 @@ Start Tensorboard in background mode (note & at the end of command). It is acces
 ```
 ./tboard.sh &
 ```
-Start training with nn.py
+Start training with modelid = 9 (see nnModel.py for model descriptions)
 ```
-nn.py -t train -id %modelid%
+nn.py -t train -id 9
 ```
-
+Continue training with modelid = 9
+```
+nn.py -t train -id 9 -c 1
+```
 
 ### Other
 Source project for creating DeepLearning Docker image [DeepLearning-docker](http://gerrit.synisys.com/#/admin/projects/DeepLearning-docker) 
