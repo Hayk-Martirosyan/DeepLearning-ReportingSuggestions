@@ -21,7 +21,7 @@ cd DeepLearning-ReportingSuggestions
 ./keras.sh
 ```
 
-Start Tensorboard in background mode (note & at the end of command)
+Start Tensorboard in background mode (note & at the end of command). It is accessable  via browser at [Tensorboard](http://localhost:6006/#)
 ```
 ./tboard.sh &
 ```
@@ -29,5 +29,9 @@ Start training with nn.py
 ```
 nn.py -t train -id %modelid%
 ```
+
+
+### Other
+Source project for creating DeepLearning Docker image [DeepLearning-docker](http://gerrit.synisys.com/#/admin/projects/DeepLearning-docker) 
 
 
