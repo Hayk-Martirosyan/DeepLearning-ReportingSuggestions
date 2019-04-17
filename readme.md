@@ -1,23 +1,33 @@
 # Hackathon 2019 
-# Suggesting Categories & Measures in reporting designer 
+## Suggesting Categories & Measures in reporting designer 
 
 
 
-# Setup Enviroment
-Create base folder ML
+### Setup Environment
+Create base folder ML and change directory to it
+```
+mkdir ML
+chdir ML
+```
+git clone [DeepLearning-Utility](http://gerrit.synisys.com/#/admin/projects/DeepLearning-Utility) project
+	
 
-1. git clone DeepLearning-Utility project into ML
-	http://gerrit.synisys.com/#/admin/projects/DeepLearning-Utility
+git clone [DeepLearning-ReportingSuggestions](http://gerrit.synisys.com/#/admin/projects/DeepLearning-ReportingSuggestions) project 
+	
+### Train Neural Network
+Go to DeepLearning-ReportingSuggestions and run Docker image with configured AI tools (Keras, Tensorflow, Python)
+```
+cd DeepLearning-ReportingSuggestions 
+./keras.sh
+```
 
-2. git clone DeepLearning-ReportingSuggestions project into ML
-	http://gerrit.synisys.com/#/admin/projects/DeepLearning-ReportingSuggestions
+Start Tensorboard in background mode (note & at the end of command)
+```
+./tboard.sh &
+```
+Start training with nn.py
+```
+nn.py -t train -id %modelid%
+```
 
-3. Go to DeepLearning-ReportingSuggestions and run ./keras.sh
-
-This will run docker image with configured AI tools(Keras, Tensorflow, Python)
-
-
-4. run ./tboard.sh &
-	This will run tensorboard at 6006 port. Note & at the end of command, it will run in the background.
-5. start training with nn.py -t train -id %modelid%
 
