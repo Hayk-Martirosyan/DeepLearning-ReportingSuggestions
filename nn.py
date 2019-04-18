@@ -15,11 +15,19 @@ from keras import backend as K
 import keras_helpers
 import math
 import sys
+from flask import Flask
+from flask import send_file, make_response, send_from_directory,request
+
+import tensorflow as tf
+
+
 from sklearn.metrics import classification_report, confusion_matrix
 numpy.set_printoptions(suppress=True,linewidth=numpy.nan,threshold=numpy.nan)
+
+
 ap = argparse.ArgumentParser()
 ap.add_argument("-t", "--type", required=True,
-        help="type of processing", choices=['train', 'test', 'predict', 'evaluate'])
+        help="type of processing", choices=['train', 'test', 'predict', 'evaluate', 'predict-service'])
 ap.add_argument("-id", "--modelid", required=True,
             help="modelid")
 FLAGS, unparsed = ap.parse_known_args()
@@ -113,6 +121,20 @@ def loadTestData():
 
     return x_train, y_train, x_test, y_test, x_cv, y_cv
 
+def predict (word):
+
+    x_data = numpy.expand_dims(numpy.zeros(X_SHAPE), 0);
+    x_data[0] = wordToData(word);
+    # print(x_data[0])
+    y_pred = model.predict(x_data, batch_size=32)
+    # print (y_pred)
+    suggestions = []
+    
+    for i,p in enumerate(y_pred[0]):
+        suggestions.append({'label':chr(i+97), 'prediction':p})
+
+    suggestions.sort(key=lambda item:item['prediction'], reverse=True)
+    return suggestions
 
 if FLAGS.type=='train':
     ap = argparse.ArgumentParser()
@@ -201,21 +223,44 @@ elif FLAGS.type=='predict':
         if len(word)<MIN_PREDICTION_LENGTH or len(word)>MAX_WORD_LENGTH:
             print("word length should be between {}-{}, actual value is {}".format(MIN_PREDICTION_LENGTH, MAX_WORD_LENGTH, len(word)))
             continue
-        # print(word)
-        x_data = numpy.expand_dims(numpy.zeros(X_SHAPE), 0);
-        x_data[0] = wordToData(word);
-        # print(x_data[0])
-        y_pred = model.predict(x_data, batch_size=32)
-        # print (y_pred)
-        suggestions = []
-        for i,p in enumerate(y_pred[0]):
-            # if p>0.1:
-            suggestions.append({'label':chr(i+97), 'prediction':p})
-                # print ("{} : {:.2f}".format(chr(i+97), p)) 
-        suggestions.sort(key=lambda item:item['prediction'], reverse=True)
+       
+        suggestions = predict(word)
+        
         for suggestion in suggestions[:4]:
             print ("{} : {:.2f}".format(suggestion['label'], suggestion['prediction'])) 
     
+elif FLAGS.type=='predict-service':
+
+    # x_train, y_train, x_test, y_test, x_cv, y_cv = loadAllData()
+    model = nnModel.createModel(modelId, X_SHAPE);
+    model.load_weights("model-{}-last.hdf5".format(modelId), by_name=False);
+
+    app = Flask(__name__)
+    graph = tf.get_default_graph()
+
+    @app.route("/")
+    def root():
+        return "Welcome!\nusage: /prediction/min_3_letter"
+
+    @app.route("/prediction/<string:str>", methods=['GET'])
+    def prediction(str):
+
+        if(MIN_PREDICTION_LENGTH<=len(str)<=MAX_WORD_LENGTH):
+            global graph
+            with graph.as_default():
+                suggestions = predict(str)
+                response = '';
+                for suggestion in suggestions[:4]:
+                    response += "{} : {:.2f}<br/>".format(suggestion['label'], suggestion['prediction'])
+                return response
+        else:
+            return "Bad Request, word length should be between {}-{}, actual value is {}".format(MIN_PREDICTION_LENGTH, MAX_WORD_LENGTH, len(str)), 400
+    
+
+    
+  
+
+    app.run(debug=True, host= '0.0.0.0')
 
 elif FLAGS.type=='test':
     # words = loadWords()
@@ -254,4 +299,6 @@ elif FLAGS.type=='test':
     # for layer in model.layers:
     #     weights = layer.get_weights()
     #     print (weights[0:10])
+
+
 

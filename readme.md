@@ -34,6 +34,17 @@ Continue training with modelid = 9
 ./nn.py -t train -id 9 -c 1
 ```
 
+### Run Prediction
+Start prediction in command line
+```
+./nn.py -t predict -id 9
+```
+Start prediction as flask rest service [Sample](http://localhost:5000/prediction/locati)
+
+```
+./nn.py -t predict-service -id 9
+```
+
 ### Other
 Source project for creating DeepLearning Docker image [DeepLearning-docker](http://gerrit.synisys.com/#/admin/projects/DeepLearning-docker) 
 
