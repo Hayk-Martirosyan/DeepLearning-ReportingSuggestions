@@ -9,10 +9,10 @@ Create base folder ML and change directory to it
 mkdir ML
 chdir ML
 ```
-git clone [DeepLearning-Utility](http://gerrit.synisys.com/#/admin/projects/DeepLearning-Utility) project
+git clone [DeepLearning-Utility](https://github.com/Hayk-Martirosyan/DeepLearning-Utility) project
 	
 
-git clone [DeepLearning-ReportingSuggestions](http://gerrit.synisys.com/#/admin/projects/DeepLearning-ReportingSuggestions) project 
+git clone [DeepLearning-ReportingSuggestions](https://github.com/Hayk-Martirosyan/DeepLearning-ReportingSuggestions) project 
 	
 ### Train Neural Network
 Go to DeepLearning-ReportingSuggestions and run Docker image with configured AI tools (Keras, Tensorflow, Python)
@@ -46,6 +46,6 @@ Start prediction as flask rest service [Sample](http://localhost:5000/prediction
 ```
 
 ### Other
-Source project for creating DeepLearning Docker image [DeepLearning-docker](http://gerrit.synisys.com/#/admin/projects/DeepLearning-docker) 
+Source project for creating DeepLearning Docker image [DeepLearning-docker](https://github.com/Hayk-Martirosyan/DeepLearning-docker) 
 
 
