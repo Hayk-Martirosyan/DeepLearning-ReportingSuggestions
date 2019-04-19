@@ -19,6 +19,7 @@ from flask import Flask
 from flask import send_file, make_response, send_from_directory,request
 
 import tensorflow as tf
+import sqlite3
 
 
 from sklearn.metrics import classification_report, confusion_matrix
@@ -257,7 +258,13 @@ elif FLAGS.type=='predict-service':
             return "Bad Request, word length should be between {}-{}, actual value is {}".format(MIN_PREDICTION_LENGTH, MAX_WORD_LENGTH, len(str)), 400
     
 
-    
+    @app.route("/pattern/<string:reportid>/<string:rowCategories>/<string:columnCategories>", methods=['GET'])
+    def addPattern(reportid, rowCategories, columnCategories):
+        with sqlite3.connect('/ml/patterns.sqlite') as conn:
+            c = conn.cursor()
+            c.execute('insert into patterns (reportid, rowPattern, columnPattern) values(?,?,?)', [reportid, rowCategories, columnCategories])
+            conn.commit()
+        return "OK"
   
 
     app.run(debug=True, host= '0.0.0.0')
