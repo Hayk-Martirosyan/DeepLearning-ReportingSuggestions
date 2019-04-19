@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Conv1D,LSTM,Activation
+from keras.layers import Dense, Dropout, Flatten, Conv1D,LSTM,Activation, Reshape
 from keras import optimizers
 
 
@@ -120,7 +120,9 @@ def createModel9(inputShape):
     model.add(Dense(400, activation='relu'))
     model.add(Dense(400, activation='relu'))
     model.add(Flatten())
-    model.add(Dense(26, activation='sigmoid'))
+    model.add(Dense(2*225, activation='sigmoid'))
+    model.add(Reshape((2, 225)))
+
     return model
 #multi label classifer ~70% accuracy on autocomplete
 #93% with top_3_accuracy
