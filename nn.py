@@ -17,6 +17,8 @@ import math
 import sys
 from flask import Flask
 from flask import send_file, make_response, send_from_directory,request
+from flask import jsonify
+import datetime
 
 import tensorflow as tf
 import sqlite3
@@ -260,12 +262,19 @@ elif FLAGS.type=='predict-service':
 
     @app.route("/pattern/<string:reportid>/<string:rowCategories>/<string:columnCategories>", methods=['GET'])
     def addPattern(reportid, rowCategories, columnCategories):
+        now = datetime.datetime.now()
         with sqlite3.connect('/ml/patterns.sqlite') as conn:
             c = conn.cursor()
-            c.execute('insert into patterns (reportid, rowPattern, columnPattern) values(?,?,?)', [reportid, rowCategories, columnCategories])
+            c.execute('insert into patterns (reportid, rowPattern, columnPattern, datetime) values(?,?,?,?)', [reportid, rowCategories, columnCategories, now.strftime("%Y-%m-%d %H:%M")])
             conn.commit()
         return "OK"
-  
+
+    @app.route("/patterns", methods=['GET'])
+    def getPatterns():
+        with sqlite3.connect('/ml/patterns.sqlite') as conn:
+            c = conn.cursor()
+            patterns = c.execute('SELECT * FROM patterns').fetchall()
+        return jsonify(patterns)
 
     app.run(debug=True, host= '0.0.0.0')
 
