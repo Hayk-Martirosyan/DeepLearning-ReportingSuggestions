@@ -120,8 +120,8 @@ def createModel9(inputShape):
     model.add(Dense(400, activation='relu'))
     model.add(Dense(400, activation='relu'))
     model.add(Flatten())
-    model.add(Dense(2*225, activation='sigmoid'))
-    model.add(Reshape((2, 225)))
+    model.add(Dense(225, activation='sigmoid'))
+    # model.add(Reshape((2, 225)))
 
     return model
 #multi label classifer ~70% accuracy on autocomplete

@@ -397,7 +397,8 @@ def loadData():
 
 
     X_data = numpy.asarray(X_data)
-    Y_data = numpy.asarray(Y_data)
+    Y_data = numpy.asarray(Y_data);
+    Y_data = Y_data.reshape((-1, len(ALL_OBJECTS_LIST)))
 
     # print(X_data.shape)
     print(Y_data.shape)
