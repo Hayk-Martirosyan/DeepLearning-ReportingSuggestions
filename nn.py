@@ -372,7 +372,7 @@ def loadData():
         # y = numpy.zeros(Y_SHAPE)
 
         
-        X_couples = [[element[0][:-1] , element[1][:-1]] for element in couples]
+        X_couples = [[element[0][:] , element[1][:-1]] for element in couples]
         Y_couples = [[element[0][-1:] , element[1][-1:]] for element in couples]
         for x_couple, y_couple in zip(X_couples, Y_couples):
             x_couple[0] += [numpy.zeros(len(ALL_OBJECTS_LIST), dtype='int') 
@@ -386,7 +386,7 @@ def loadData():
             # if(len(x_couple[0] + x_couple[1])==16):
             #     print(recover(x_couple[0] + x_couple[1]))
             X_data.append(x_couple[0] + x_couple[1])
-            Y_data.append(y_couple[0] + y_couple[1])
+            Y_data.append(y_couple[1])#y_couple[0] + 
             # print(recover(y_couple[0] + y_couple[1]))
 
         # if(len(X_couples)==0):
