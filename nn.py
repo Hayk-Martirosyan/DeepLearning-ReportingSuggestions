@@ -935,47 +935,48 @@ def loadData():
               
         # print(pattern[2])
         # print(recover(columnPatternOneHot))
-        x = mergePatterns(rowPatternOneHot, columnPatternOneHot[:-1]);
-        y = columnPatternOneHot[-1:]
-        # print(recover(x))
-        # print(recover(y))
-        X_data.append(x)
-        Y_data.append(y)
+        # x = mergePatterns(rowPatternOneHot, columnPatternOneHot[:-1]);
+        # y = columnPatternOneHot[-1:]
+        # # print(recover(x))
+        # # print(recover(y))
+        # X_data.append(x)
+        # Y_data.append(y)
 
-        # couples = make_couples([rowPatternOneHot], [columnPatternOneHot], ROW_MAX_PATTERN_LENGTH, COL_MAX_PATTERN_LENGTH)
+        couples = make_couples([rowPatternOneHot], [columnPatternOneHot], ROW_MAX_PATTERN_LENGTH, COL_MAX_PATTERN_LENGTH)
         # # print("len c={}".format(len(couples)))
         # # print(recover(couples[0][0]))
-        # # print(len(couples))
+        # print(len(couples[0][0]))
         # # x = numpy.zeros(X_SHAPE)
         # # y = numpy.zeros(Y_SHAPE)
 
         
-        # X_couples = [[element[0][:] , element[1][:-1]] for element in couples]
-        # Y_couples = [[element[0][-1:] , element[1][-1:]] for element in couples]
-        # for x_couple, y_couple in zip(X_couples, Y_couples):
-        #     x_couple[0] += [numpy.zeros(len(ALL_OBJECTS_LIST), dtype='int') 
-        #         for _ in range(ROW_MAX_PATTERN_LENGTH-len(x_couple[0]))]
-        #     x_couple[1] += [numpy.zeros(len(ALL_OBJECTS_LIST), dtype='int') 
-        #         for _ in range(COL_MAX_PATTERN_LENGTH-len(x_couple[1]))]
+        X_couples = [[element[0][:] , element[1][:-1]] for element in couples]
+        Y_couples = [[element[0][-1:] , element[1][-1:]] for element in couples]
+        for x_couple, y_couple in zip(X_couples, Y_couples):
+            x_couple[0] += [numpy.zeros(len(ALL_OBJECTS_LIST), dtype='int') 
+                for _ in range(ROW_MAX_PATTERN_LENGTH-len(x_couple[0]))]
+            x_couple[1] += [numpy.zeros(len(ALL_OBJECTS_LIST), dtype='int') 
+                for _ in range(COL_MAX_PATTERN_LENGTH-len(x_couple[1]))]
             
             
-        #     # y_couple += [numpy.zeros(len(ALL_OBJECTS_LIST), dtype='int') 
-        #     #     for _ in range(ROW_MAX_PATTERN_LENGTH-len(y_couple))]
-        #     # if(len(x_couple[0] + x_couple[1])==16):
-        #     #     print(recover(x_couple[0] + x_couple[1]))
-        #     X_data.append(x_couple[0] + x_couple[1])
-        #     Y_data.append(y_couple[1])#y_couple[0] + 
-        #     # print(recover(x_couple[0] + x_couple[1]))
+            # y_couple += [numpy.zeros(len(ALL_OBJECTS_LIST), dtype='int') 
+            #     for _ in range(ROW_MAX_PATTERN_LENGTH-len(y_couple))]
+            # if(len(x_couple[0] + x_couple[1])==16):
+            #     print(recover(x_couple[0] + x_couple[1]))
+            X_data.append(x_couple[0] + x_couple[1])
+            Y_data.append(y_couple[1][0])#y_couple[0] + 
+            # print(recover(x_couple[0] + x_couple[1]))
+            # print(len(y_couple[1][0]))
 
-        # if(len(X_couples)==0):
-        #     continue
+        if(len(X_couples)==0):
+            continue
 
-        # X_data +=X_couples
-        # Y_data+=Y_couples
 
 
     X_data = numpy.asarray(X_data)
     Y_data = numpy.asarray(Y_data);
+    # print(len(Y_data))
+
     Y_data = Y_data.reshape((-1, len(ALL_OBJECTS_LIST)))
 
     print(X_data.shape)
@@ -1218,21 +1219,32 @@ elif FLAGS.type=='predict-service':
 
     @app.route("/columnprediction/<string:row>/<string:column>", methods=['GET'])
     def columnPrediction(row, column):
+        if row==",":
+            row = ""
+        if column==",":
+            column=""
         rowPatternOneHot = patternToArray(row);
         columnPatternOneHot = patternToArray(column);
 
         x = mergePatterns(rowPatternOneHot, columnPatternOneHot);
         # print(len(x[15]))
-        print(recover(x))
+        # print(recover(x))
         x = numpy.asarray(x).reshape(X_SHAPE)
         global graph
         with graph.as_default():
             suggestions = predict(x)
-            response = '';
-            for suggestion in suggestions[:4]:
-                response += "{}/{} : {:.2f}<br/>".format(suggestion['label'],suggestion['id'], suggestion['prediction'])
-            return response
+            
+            ids = []
+            debug = ""
+            for suggestion in suggestions[:2]:
+                debug += "{} : {:.2f}, ".format(suggestion['label'], suggestion['prediction'])
+                ids.append(suggestion['id'])
+            response = '{"predictions":['+",".join(ids)+'],\n"debug":"'+debug+'"}';
+            return response;
     
+    @app.route("/rowprediction/<string:row>/<string:column>", methods=['GET'])
+    def rowPrediction(row, column):
+        return '{"predictions":[]}';
 
     @app.route("/pattern/<string:reportid>/<string:rowCategories>/<string:columnCategories>", methods=['GET'])
     def addPattern(reportid, rowCategories, columnCategories):
