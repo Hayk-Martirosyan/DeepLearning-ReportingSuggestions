@@ -114,13 +114,27 @@ def createModel8(inputShape):
 #96% with top_4_accuracy
 #94% with top_3_accuracy
 #88% with top_2_accuracy
-def createModel9(inputShape):
+def createModel9(inputShape, outputshape):
     model = Sequential()
     model.add(Conv1D(100, 4, padding='valid', activation='relu', strides=1, input_shape=inputShape))
     model.add(Dense(400, activation='relu'))
     model.add(Dense(400, activation='relu'))
     model.add(Flatten())
-    model.add(Dense(225, activation='sigmoid'))
+    model.add(Dense(outputshape, activation='sigmoid'))
+    # model.add(Reshape((2, 225)))
+
+    return model
+
+
+def createModel91(inputShape, outputshape):
+    model = Sequential()
+    model.add(Conv1D(200, 3, padding='valid', activation='relu', strides=1, input_shape=inputShape))
+    model.add(Dense(400, activation='relu'))
+    model.add(Dense(400, activation='relu'))
+    model.add(Dense(400, activation='relu'))
+    model.add(Dense(400, activation='relu'))
+    model.add(Flatten())
+    model.add(Dense(outputshape, activation='sigmoid'))
     # model.add(Reshape((2, 225)))
 
     return model
@@ -138,9 +152,9 @@ def createModel10(inputShape):
     model.add(Dense(26, activation='sigmoid'))
     return model
 
-def createModel(id, inputShape):
+def createModel(id, inputShape, outputshape):
     f = eval('createModel{}'.format(id))
-    return f(inputShape)
+    return f(inputShape, outputshape)
     # if id==1:
     #     return createModel1((HEIGHT,WIDTH, 1), 2);
     # elif id==2:
