@@ -27,6 +27,9 @@ import sqlite3
 from sklearn.metrics import classification_report, confusion_matrix
 numpy.set_printoptions(suppress=True,linewidth=numpy.nan,threshold=numpy.nan)
 
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-t", "--type", required=True,
@@ -926,11 +929,12 @@ def loadData():
     Y_data = []
 
     for pattern in patterns:#-2:-1
+        # print(pattern)
         rowPatternOneHot = patternToArray(pattern[1]);
         # print(pattern[1])
         # print(recover(rowPatternOneHot))
         columnPatternOneHot = patternToArray(pattern[2]);
-        if len(columnPatternOneHot)<2:
+        if len(columnPatternOneHot)<1:
             continue
               
         # print(pattern[2])
@@ -943,7 +947,7 @@ def loadData():
         # Y_data.append(y)
 
         couples = make_couples([rowPatternOneHot], [columnPatternOneHot], ROW_MAX_PATTERN_LENGTH, COL_MAX_PATTERN_LENGTH)
-        # # print("len c={}".format(len(couples)))
+        # print("len c={}".format(len(couples)))
         # # print(recover(couples[0][0]))
         # print(len(couples[0][0]))
         # # x = numpy.zeros(X_SHAPE)
@@ -968,8 +972,8 @@ def loadData():
             # print(recover(x_couple[0] + x_couple[1]))
             # print(len(y_couple[1][0]))
 
-        if(len(X_couples)==0):
-            continue
+        # if(len(X_couples)==0):
+        #     continue
 
 
 
@@ -981,7 +985,7 @@ def loadData():
 
     print(X_data.shape)
     print(Y_data.shape)
-    # for x,y in zip(X_data[0:100], Y_data[0:100]):
+    # for x,y in zip(X_data[0:300], Y_data[0:300]):
     #     print("{} / {} ".format(recover(x), recover([y])))
         # print("{} ".format(recover(y)))
     # x_train, y_train = genData2(words)
@@ -1007,7 +1011,7 @@ def predict (patternArray):
     x_data[0] = patternArray
     # print(x_data)
     y_pred = model.predict(x_data, batch_size=32)
-    print (y_pred)
+    # print (y_pred)
     suggestions = []
     
     for i,p in enumerate(y_pred[0]):
@@ -1027,8 +1031,13 @@ def insertPatterToDB(reportid, rowCategories, columnCategories):
 def loadPatterns():
     with sqlite3.connect('/ml/patterns.sqlite') as conn:
         c = conn.cursor()
-        patterns = c.execute('SELECT * FROM patterns').fetchall()
-        return patterns
+        patterns = c.execute('''SELECT * 
+                                FROM patterns
+                                order by datetime desc''').fetchall()
+
+        top = patterns[:10]
+
+        return top*3+patterns;
 
 def md(rowObjects, columnObjects):
     print(rowObjects, columnObjects)
@@ -1068,8 +1077,8 @@ def make_one_hot(pattern):
     return pattern_one_hot;
 
 
-def generate_splits(pattern, max_pattern_length, weight=10):
-    result = [pattern[:i] for i in range(2, len(pattern)+1)] * weight
+def generate_splits(pattern, max_pattern_length, weight=5):
+    result = [pattern[:i] for i in range(1, len(pattern)+1)] * weight
     for i in range(1, len(pattern)-1):
         result += [pattern[i:j] for j in range(i+2, len(pattern)+1)]
     # for vec in result:
@@ -1128,8 +1137,8 @@ if FLAGS.type=='train':
     model = nnModel.createModel(modelId, X_SHAPE, len(ALL_OBJECTS_LIST));
     print (model.summary())
 
-    batch_size = 2000
-    epochs = 100
+    batch_size = 32
+    epochs = 50
     if  vars(FLAGS)['continue']:
         file = open("model-{}-last.epoch".format(modelId), 'r')
         initEpochs = int(file.read())
@@ -1236,7 +1245,7 @@ elif FLAGS.type=='predict-service':
             
             ids = []
             debug = ""
-            for suggestion in suggestions[:2]:
+            for suggestion in suggestions[:4]:
                 debug += "{} : {:.2f}, ".format(suggestion['label'], suggestion['prediction'])
                 ids.append(suggestion['id'])
             response = '{"predictions":['+",".join(ids)+'],\n"debug":"'+debug+'"}';
@@ -1246,7 +1255,7 @@ elif FLAGS.type=='predict-service':
     def rowPrediction(row, column):
         return '{"predictions":[]}';
 
-    @app.route("/pattern/<string:reportid>/<string:rowCategories>/<string:columnCategories>", methods=['GET'])
+    @app.route("/pattern/<string:reportid>/<string:rowCategories>/<string:columnCategories>", methods=['GET','PUT'])
     def addPattern(reportid, rowCategories, columnCategories):
         insertPatterToDB(reportid, rowCategories, columnCategories)
         return "OK"
