@@ -25,7 +25,7 @@ import sqlite3
 from flask_cors import CORS
 
 from sklearn.metrics import classification_report, confusion_matrix
-numpy.set_printoptions(suppress=True,linewidth=numpy.nan,threshold=numpy.nan)
+numpy.set_printoptions(suppress=True)
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True

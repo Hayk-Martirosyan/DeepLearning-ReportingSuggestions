@@ -39,7 +39,7 @@ Start prediction in command line
 ```
 ./nn.py -t predict -id 9
 ```
-Start prediction as flask rest service [Sample](http://localhost:5000/prediction/locati)
+Start prediction as flask rest service [Sample](http://localhost:5000/columnprediction/300,308/59294)
 
 ```
 ./nn.py -t predict-service -id 9
