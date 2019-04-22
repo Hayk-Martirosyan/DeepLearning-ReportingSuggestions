@@ -128,11 +128,9 @@ def createModel9(inputShape, outputshape):
 
 def createModel91(inputShape, outputshape):
     model = Sequential()
-    model.add(Conv1D(200, 3, padding='valid', activation='relu', strides=1, input_shape=inputShape))
-    model.add(Dense(400, activation='relu'))
-    model.add(Dense(400, activation='relu'))
-    model.add(Dense(400, activation='relu'))
-    model.add(Dense(400, activation='relu'))
+    model.add(Conv1D(50, 3, padding='valid', activation='relu', strides=1, input_shape=inputShape))
+    model.add(Dense(30, activation='relu'))
+    model.add(Dense(30, activation='relu'))
     model.add(Flatten())
     model.add(Dense(outputshape, activation='sigmoid'))
     # model.add(Reshape((2, 225)))

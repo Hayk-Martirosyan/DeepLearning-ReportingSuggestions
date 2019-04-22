@@ -22,7 +22,7 @@ import datetime
 
 import tensorflow as tf
 import sqlite3
-
+from flask_cors import CORS
 
 from sklearn.metrics import classification_report, confusion_matrix
 numpy.set_printoptions(suppress=True,linewidth=numpy.nan,threshold=numpy.nan)
@@ -1035,9 +1035,9 @@ def loadPatterns():
                                 FROM patterns
                                 order by datetime desc''').fetchall()
 
-        top = patterns[:10]
+        top = patterns[:5]
 
-        return top*3+patterns;
+        return top*5+patterns;
 
 def md(rowObjects, columnObjects):
     print(rowObjects, columnObjects)
@@ -1117,29 +1117,11 @@ def recover(pattern_one_hot):
             pattern.append(ALL_OBJECTS_LIST[numpy.argmax(obj_vec)])
     return pattern
 
-
-
-
-if FLAGS.type=='train':
-    ap = argparse.ArgumentParser()
-    
-    ap.add_argument("-c", "--continue",
-            help="continue from previous training")
-    FLAGS, unparsed = ap.parse_known_args(unparsed)
-    
+def train(modelId, epochs, continueTraining):
     x_train, y_train, x_test, y_test, x_cv, y_cv = loadData()#loadAllData(),loadTestData
-    # x_train = x_train[0:100,:,:,:]
-    # y_train = y_train[0:100,:]
-    # print (x_train.shape)
-    # print (y_train.shape)
-    # featureCount = x_train.shape[1]
-    print (modelId)
-    model = nnModel.createModel(modelId, X_SHAPE, len(ALL_OBJECTS_LIST));
-    print (model.summary())
 
     batch_size = 32
-    epochs = 50
-    if  vars(FLAGS)['continue']:
+    if  continueTraining:
         file = open("model-{}-last.epoch".format(modelId), 'r')
         initEpochs = int(file.read())
         epochs+=initEpochs
@@ -1152,7 +1134,7 @@ if FLAGS.type=='train':
     # optimizer = optimizers.SGD(lr=0.0003, decay=1e-6)
     # optimizer = keras_helpers.MySGDOptimizer(initEpochs, lr=1e-0001,decay=1e-06, momentum=0.9, nesterov=True)#
     model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=[keras_helpers.top_4_accuracy])#'categorical_accuracy'
-    if  vars(FLAGS)['continue']:
+    if  continueTraining:
         model.load_weights("model-{}-last.hdf5".format(modelId), by_name=False);
     
     # callback_test = MyCallback(x_cv, y_cv);
@@ -1174,52 +1156,76 @@ if FLAGS.type=='train':
     file.write("{}".format((epochs)));
     file.close()
     model.save_weights("model-{}-last.hdf5".format(modelId))
+
+
+if FLAGS.type=='train':
+    ap = argparse.ArgumentParser()
+    
+    ap.add_argument("-c", "--continue",
+            help="continue from previous training")
+    FLAGS, unparsed = ap.parse_known_args(unparsed)
+    
+    # x_train = x_train[0:100,:,:,:]
+    # y_train = y_train[0:100,:]
+    # print (x_train.shape)
+    # print (y_train.shape)
+    # featureCount = x_train.shape[1]
+    print (modelId)
+    model = nnModel.createModel(modelId, X_SHAPE, len(ALL_OBJECTS_LIST));
+    print (model.summary())
+    epochs = 50
+    continueTraining = vars(FLAGS)['continue']
+    train(modelId, epochs, continueTraining)
+    
     # model.save_weights("model-{}-{}.hdf5".format(modelId,datetime.datetime.now()))
 
-elif FLAGS.type=='evaluate':
+# elif FLAGS.type=='evaluate':
     
-    model = nnModel.createModel(modelId, X_SHAPE);
-    x_test_pos, y_test_pos = loadData(2, 1, 1500);
-    x_test_neg, y_test_neg = loadData(2, 0, 2000);
-    x_test_neg2, y_test_neg2 = loadSingleLineAsNegativeData(2, 1000);
-    # x_test_q, y_test_q =     loadData(2,  100, 1);
+#     model = nnModel.createModel(modelId, X_SHAPE);
+#     x_test_pos, y_test_pos = loadData(2, 1, 1500);
+#     x_test_neg, y_test_neg = loadData(2, 0, 2000);
+#     x_test_neg2, y_test_neg2 = loadSingleLineAsNegativeData(2, 1000);
+#     # x_test_q, y_test_q =     loadData(2,  100, 1);
 
-    x_test = numpy.concatenate((x_test_pos, x_test_neg, x_test_neg2))
-    y_test = numpy.concatenate((y_test_pos, y_test_neg, y_test_neg2))
+#     x_test = numpy.concatenate((x_test_pos, x_test_neg, x_test_neg2))
+#     y_test = numpy.concatenate((y_test_pos, y_test_neg, y_test_neg2))
 
-    batch_size = 32
-    model.load_weights("model-{}-last.hdf5".format(modelId), by_name=False);
-    optimizer = optimizers.Adam(lr=0.000003);
+#     batch_size = 32
+#     model.load_weights("model-{}-last.hdf5".format(modelId), by_name=False);
+#     optimizer = optimizers.Adam(lr=0.000003);
 
-    model.compile(optimizer=optimizer, loss='mse', metrics=['accuracy'])
-    print(model.evaluate(x_test, y_test))
-    predictions = model.predict(x_test, batch_size=32)
-    print (calculateScore(predictions, y_test))
+#     model.compile(optimizer=optimizer, loss='mse', metrics=['accuracy'])
+#     print(model.evaluate(x_test, y_test))
+#     predictions = model.predict(x_test, batch_size=32)
+#     print (calculateScore(predictions, y_test))
 
-elif FLAGS.type=='predict':
+# elif FLAGS.type=='predict':
 
-    # x_train, y_train, x_test, y_test, x_cv, y_cv = loadAllData()
-    model = nnModel.createModel(modelId, X_SHAPE);
-    model.load_weights("model-{}-last.hdf5".format(modelId), by_name=False);
-    while(True):
-        line = sys.stdin.readline()
-        word = line[:len(line)-1]
-        if len(word)<MIN_PREDICTION_LENGTH or len(word)>MAX_WORD_LENGTH:
-            print("word length should be between {}-{}, actual value is {}".format(MIN_PREDICTION_LENGTH, MAX_WORD_LENGTH, len(word)))
-            continue
+#     # x_train, y_train, x_test, y_test, x_cv, y_cv = loadAllData()
+#     model = nnModel.createModel(modelId, X_SHAPE);
+#     model.load_weights("model-{}-last.hdf5".format(modelId), by_name=False);
+#     while(True):
+#         line = sys.stdin.readline()
+#         word = line[:len(line)-1]
+#         if len(word)<MIN_PREDICTION_LENGTH or len(word)>MAX_WORD_LENGTH:
+#             print("word length should be between {}-{}, actual value is {}".format(MIN_PREDICTION_LENGTH, MAX_WORD_LENGTH, len(word)))
+#             continue
        
-        suggestions = predict(word)
+#         suggestions = predict(word)
         
-        for suggestion in suggestions[:4]:
-            print ("{} : {:.2f}".format(suggestion['label'], suggestion['prediction'])) 
+#         for suggestion in suggestions[:4]:
+#             print ("{} : {:.2f}".format(suggestion['label'], suggestion['prediction'])) 
     
 elif FLAGS.type=='predict-service':
 
     # x_train, y_train, x_test, y_test, x_cv, y_cv = loadAllData()
     model = nnModel.createModel(modelId, X_SHAPE, len(ALL_OBJECTS_LIST));
+    model.compile(optimizer="adam", loss='binary_crossentropy', metrics=[keras_helpers.top_4_accuracy])
+
     model.load_weights("model-{}-last.hdf5".format(modelId), by_name=False);
 
     app = Flask(__name__)
+    CORS(app)
     graph = tf.get_default_graph()
 
     @app.route("/")
@@ -1246,8 +1252,9 @@ elif FLAGS.type=='predict-service':
             ids = []
             debug = ""
             for suggestion in suggestions[:4]:
-                debug += "{} : {:.2f}, ".format(suggestion['label'], suggestion['prediction'])
-                ids.append(suggestion['id'])
+                if suggestion['prediction']>0.10:
+                    debug += "{} : {:.2f}, ".format(suggestion['label'], suggestion['prediction'])
+                    ids.append(suggestion['id'])
             response = '{"predictions":['+",".join(ids)+'],\n"debug":"'+debug+'"}';
             return response;
     
@@ -1257,8 +1264,21 @@ elif FLAGS.type=='predict-service':
 
     @app.route("/pattern/<string:reportid>/<string:rowCategories>/<string:columnCategories>", methods=['GET','PUT'])
     def addPattern(reportid, rowCategories, columnCategories):
+        if rowCategories==",":
+            rowCategories = ""
+        if columnCategories==",":
+            columnCategories=""
+
         insertPatterToDB(reportid, rowCategories, columnCategories)
         return "OK"
+
+    @app.route("/train/<int:epochs>", methods=['GET'])
+    def trainService(epochs):
+        global graph
+        with graph.as_default():
+            train(9, epochs, 1)
+            return "Done"
+
 
     @app.route("/patterns", methods=['GET'])
     def getPatterns():
